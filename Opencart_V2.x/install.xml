@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+	<name>Pay Rest On Arrival</name>
+	<code>prod</code>
+	<version>1.0</version>
+	<author>Rahul Verma</author>
+	<link>mailto:rahulverma0008@gmail.com</link>
+
+	<file path="catalog/controller/checkout/payment_method.php">
+		<operation>
+			<search regex="false">
+				<![CDATA[if (file_exists(DIR_TEMPLATE . $this->config->get('config_template')]]>
+			</search>
+			<add position="before">
+				<![CDATA[
+					/* Modified by prod (Pay Rest On Arrival) module */
+					$data['prod_status'] = $this->config->get('prod_status');
+					if($this->config->get('prod_status')){
+						$this->load->language('total/prod');
+						if(null != ($text_opt = $this->config->get('prod_text_opt')) 
+						&& isset($text_opt[$this->config->get('config_language_id')]) 
+						&& strlen($text_opt[$this->config->get('config_language_id')]) > 0) {
+							$data['text_prod_opt'] = $text_opt[$this->config->get('config_language_id')];
+						} else {
+							$data['text_prod_opt'] = $this->language->get('prod_text_opt');
+						}
+						$data['prod_opt'] = !empty($this->session->data['prod_opt']);
+					}
+					/* Modified by prod (Pay Rest On Arrival) module */
+				]]>
+			</add>
+		</operation>
+		<operation>
+			<search regex="false">
+				<![CDATA[$this->session->data['comment'] = strip_tags($this->request->post['comment']);]]>
+			</search>
+			<add position="before">
+				<![CDATA[
+					/* Modified by prod (Pay Rest On Arrival) module */
+					$this->session->data['prod_opt'] = !empty($this->request->post['prod_opt']);
+					/* Modified by prod (Pay Rest On Arrival) module */
+				]]>
+			</add>
+		</operation>
+	</file>
+	<file path="catalog/view/theme/*/template/checkout/payment_method.tpl">
+		<operation>
+			<search regex="false">
+				<![CDATA[<p><strong><?php echo $text_comments; ?></strong></p>]]>
+			</search>
+			<add position="before">
+				<![CDATA[
+					<?php 
+					/* Modified by prod (Pay Rest On Arrival) module */
+					if($prod_status) {
+					?>
+					<div>
+						<label>
+							<?php if ($prod_opt) { ?>
+							<input type="checkbox" name="prod_opt" value="1" checked="checked" />
+							<?php } else { ?>
+							<input type="checkbox" name="prod_opt" value="1" />
+							<?php } ?><?php echo $text_prod_opt; ?>
+						</label>
+					</div>
+					<?php
+					}
+					/* Modified by prod (Pay Rest On Arrival) module */
+					?>
+				]]>
+			</add>
+		</operation>
+	</file>
+
+</modification>
