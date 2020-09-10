@@ -1,4 +1,4 @@
-# Multiple Geo Zone Shipping
+# Pay Rest On Arrival | Partial Payment
 
 ## How To Install
 1) In your OpenCart admin panel go to Extensions > Extension Installer

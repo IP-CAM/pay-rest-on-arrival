@@ -7,7 +7,7 @@ class ModelExtensionTotalProd extends Model {
 		}
 
 		if (isset($this->session->data['prod_opt']) 
-			&& $this->session->data['prod_opt'] == '1' 
+			&& $this->session->data['prod_opt'] == true 
 			&& isset($this->session->data['payment_method']) 
 			&& $this->session->data['payment_method']['code'] != 'cod') {
 			

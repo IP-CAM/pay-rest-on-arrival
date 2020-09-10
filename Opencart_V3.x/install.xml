@@ -8,7 +8,7 @@
 
 	<file path="catalog/controller/checkout/payment_method.php">
 		<operation>
-			<search regex="false">
+			<search>
 				<![CDATA[$this->response->setOutput($this->load->view('checkout/payment_method', $data));]]>
 			</search>
 			<add position="before">
@@ -31,13 +31,13 @@
 			</add>
 		</operation>
 		<operation>
-			<search regex="false">
+			<search>
 				<![CDATA[$this->session->data['comment'] = strip_tags($this->request->post['comment']);]]>
 			</search>
 			<add position="before">
 				<![CDATA[
 					/* Modified by prod (Pay Rest On Arrival) module */
-					$this->session->data['prod_opt'] = !empty($this->request->post['prod_opt']);
+					$this->session->data['prod_opt'] = isset($this->request->post['prod_opt']) && !empty($this->request->post['prod_opt'])? true : false;
 					/* Modified by prod (Pay Rest On Arrival) module */
 				]]>
 			</add>
@@ -45,20 +45,19 @@
 	</file>
 	<file path="catalog/view/theme/*/template/checkout/payment_method.twig">
 		<operation>
-			<search regex="false">
+			<search>
 				<![CDATA[<p><strong>{{ text_comments }}</strong></p>]]>
 			</search>
 			<add position="before">
 				<![CDATA[
-					<?php 
 					{# /* Modified by prod (Pay Rest On Arrival) module */ #}
 					{% if prod_status %}
 					<div>
 						<label>
 							{% if prod_opt %}
-							<input type="checkbox" name="prod_opt" value="1" checked="checked" />
+							<input type="checkbox" name="prod_opt" value="true" checked="checked" />
 							{% else %}
-							<input type="checkbox" name="prod_opt" value="1" />
+							<input type="checkbox" name="prod_opt" value="true" />
 							{% endif %}{{ text_prod_opt }}
 						</label>
 					</div>
@@ -68,5 +67,84 @@
 			</add>
 		</operation>
 	</file>
+
+
+	<!-- for journal 3 theme -->
+	<file path="catalog/controller/journal3/checkout.php">
+		<operation>
+			<search index="0">
+				<![CDATA[return array(]]>
+			</search>
+			<add position="replace">
+				<![CDATA[
+					/* Modified by prod (Pay Rest On Arrival) module */
+					$data['prod_status'] = $this->config->get('total_prod_status');
+					if($this->config->get('total_prod_status')){
+						$this->load->language('extension/total/prod');
+						if(null != ($text_opt = $this->config->get('total_prod_text_opt')) 
+						&& isset($text_opt[$this->config->get('config_language_id')]) 
+						&& strlen($text_opt[$this->config->get('config_language_id')]) > 0) {
+							$data['text_prod_opt'] = $text_opt[$this->config->get('config_language_id')];
+						} else {
+							$data['text_prod_opt'] = $this->language->get('prod_text_opt');
+						}
+					}
+
+					return array(
+						'prod_status'	=> $this->config->get('total_prod_status'),
+						'prod_opt'		=> isset($this->session->data['prod_opt']) && $this->session->data['prod_opt'] == true,
+						'text_prod_opt'	=> isset($data['text_prod_opt'])? $data['text_prod_opt'] : '',
+					/* Modified by prod (Pay Rest On Arrival) module */
+				]]>
+			</add>
+		</operation>
+		<operation>
+			<search>
+				<![CDATA[$data = $this->model_journal3_checkout->update();]]>
+			</search>
+			<add position="before">
+				<![CDATA[
+					/* Modified by prod (Pay Rest On Arrival) module */
+					$this->session->data['prod_opt'] = Arr::get($this->request->post, 'order_data.prod_opt') == "true";
+					/* Modified by prod (Pay Rest On Arrival) module */
+				]]>
+			</add>
+		</operation>
+	</file>
+	<file path="catalog/model/journal3/checkout.php">
+		<operation>
+			<search>
+				<![CDATA[$this->model_journal3_order->save($order_id, $data);]]>
+			</search>
+			<add position="after">
+				<![CDATA[
+					/* Modified by prod (Pay Rest On Arrival) module */
+					$data['prod_opt'] = isset($this->session->data['prod_opt']) && !empty($this->session->data['prod_opt'])? true : false;
+					/* Modified by prod (Pay Rest On Arrival) module */
+				]]>
+			</add>
+		</operation>
+	</file>
+	<file path="catalog/view/theme/journal3/template/journal3/checkout/payment_method.twig">
+		<operation>
+			<search>
+				<![CDATA[<div class="section-body">]]>
+			</search>
+			<add position="before">
+				<![CDATA[
+					{# /* Modified by prod (Pay Rest On Arrival) module */ #}
+					<div v-if="prod_status">
+						<label>
+							<input v-if="prod_opt" type="checkbox" name="prod_opt" v-model="order_data.prod_opt" checked="checked" />
+							<input v-else type="checkbox" name="prod_opt" v-model="order_data.prod_opt" />
+							&nbsp;&nbsp;<span v-html="order_data.text_prod_opt"></span>
+						</label>
+					</div>
+					{# /* Modified by prod (Pay Rest On Arrival) module */ #}
+				]]>
+			</add>
+		</operation>
+	</file>
+
 
 </modification>
